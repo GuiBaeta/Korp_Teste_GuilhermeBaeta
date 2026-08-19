@@ -25,4 +25,25 @@ public class ProductsController : ControllerBase
             $"/api/products/{product.Id}",
             product);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<ProductResponse>>> GetAll()
+    {
+        var products = await _productService.GetAllAsync();
+
+        return Ok(products);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ProductResponse>> GetById(Guid id)
+    {
+        var product = await _productService.GetByIdAsync(id);
+
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(product);
+    }
 }

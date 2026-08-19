@@ -1,6 +1,7 @@
 using Inventory.Api.Data;
 using Inventory.Api.DTOs;
 using Inventory.Api.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.Api.Services;
 
@@ -31,6 +32,39 @@ public class ProductService
 
         await _dbContext.SaveChangesAsync();
 
+        return MapToResponse(product);
+    }
+
+    public async Task<IReadOnlyList<ProductResponse>> GetAllAsync()
+    {
+        return await _dbContext.Products
+            .AsNoTracking()
+            .OrderBy(product => product.Description)
+            .Select(product => new ProductResponse
+            {
+                Id = product.Id,
+                Code = product.Code,
+                Description = product.Description,
+                StockQuantity = product.StockQuantity,
+                CreatedAt = product.CreatedAt,
+                UpdatedAt = product.UpdatedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<ProductResponse?> GetByIdAsync(Guid id)
+    {
+        var product = await _dbContext.Products
+            .AsNoTracking()
+            .FirstOrDefaultAsync(product => product.Id == id);
+
+        return product is null
+            ? null
+            : MapToResponse(product);
+    }
+
+    private static ProductResponse MapToResponse(Product product)
+    {
         return new ProductResponse
         {
             Id = product.Id,
