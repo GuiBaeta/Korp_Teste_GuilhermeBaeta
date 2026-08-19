@@ -16,6 +16,15 @@ public class ProductService
 
     public async Task<ProductResponse> CreateAsync(CreateProductRequest request)
     {
+        var codeAlreadyExists = await _dbContext.Products
+            .AnyAsync(product => product.Code == request.Code);
+
+        if (codeAlreadyExists)
+        {
+            throw new InvalidOperationException(
+                "A product with the provided code already exists.");
+        }
+
         var now = DateTime.UtcNow;
 
         var product = new Product
