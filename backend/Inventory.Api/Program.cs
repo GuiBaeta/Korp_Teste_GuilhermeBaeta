@@ -1,6 +1,14 @@
+using Inventory.Api.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<InventoryDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("InventoryDatabase")));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
