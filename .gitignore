@@ -1,0 +1,32 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+
+# VS Code
+.vscode/
+
+# JetBrains Rider
+.idea/
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+
+# Operating System
+.DS_Store
+Thumbs.db
