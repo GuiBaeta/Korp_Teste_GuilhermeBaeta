@@ -13,4 +13,6 @@ public class Invoice
     public DateTime CreatedAt { get; set; }
 
     public DateTime? ClosedAt { get; set; }
+
+    public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
 }
