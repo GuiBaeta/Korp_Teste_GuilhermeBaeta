@@ -45,6 +45,33 @@ public class InvoiceService
         return MapToResponse(invoice);
     }
 
+    public async Task<List<InvoiceResponse>> GetAllAsync()
+    {
+        return await _dbContext.Invoices
+            .AsNoTracking()
+            .OrderByDescending(invoice => invoice.CreatedAt)
+            .Select(invoice => new InvoiceResponse
+            {
+                Id = invoice.Id,
+                Number = invoice.Number,
+                Status = invoice.Status,
+                CreatedAt = invoice.CreatedAt,
+                ClosedAt = invoice.ClosedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<InvoiceResponse?> GetByIdAsync(Guid id)
+    {
+        var invoice = await _dbContext.Invoices
+            .AsNoTracking()
+            .FirstOrDefaultAsync(invoice => invoice.Id == id);
+
+        return invoice is null
+            ? null
+            : MapToResponse(invoice);
+    }
+
     private async Task<long> GetNextNumberAsync(
         int year,
         IDbContextTransaction transaction)
