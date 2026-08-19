@@ -14,6 +14,9 @@ public class BillingDbContext : DbContext
 
     public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
 
+    public DbSet<InvoiceNumberSequence> InvoiceNumberSequences =>
+        Set<InvoiceNumberSequence>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Invoice>(entity =>
@@ -21,6 +24,9 @@ public class BillingDbContext : DbContext
             entity.ToTable("invoices");
 
             entity.HasKey(invoice => invoice.Id);
+
+            entity.HasIndex(invoice => invoice.Number)
+                .IsUnique();
 
             entity.Property(invoice => invoice.Number)
                 .IsRequired()
@@ -58,6 +64,19 @@ public class BillingDbContext : DbContext
                 .HasMaxLength(200);
 
             entity.Property(item => item.Quantity)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<InvoiceNumberSequence>(entity =>
+        {
+            entity.ToTable("invoice_number_sequences");
+
+            entity.HasKey(sequence => sequence.Year);
+
+            entity.Property(sequence => sequence.Year)
+                .ValueGeneratedNever();
+
+            entity.Property(sequence => sequence.LastNumber)
                 .IsRequired();
         });
     }
