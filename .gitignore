@@ -30,3 +30,6 @@ dist/
 # Operating System
 .DS_Store
 Thumbs.db
+
+# Visual Studio upgrade logs
+UpgradeLog*.htm
