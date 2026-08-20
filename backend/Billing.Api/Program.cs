@@ -32,6 +32,17 @@ builder.Services.AddControllers()
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddDbContext<BillingDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("BillingDatabase")));
@@ -60,6 +71,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("Frontend");
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.MapControllers();

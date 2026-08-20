@@ -1,41 +1,103 @@
-import { Component } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
+import { finalize } from 'rxjs';
+import { ApiErrorResponse, Invoice, InvoiceStatus } from '../../core/models/invoice';
+import { InvoiceApiService } from '../../core/services/invoice-api.service';
 
 @Component({
   selector: 'app-invoices-page',
-  template: `
-    <section class="page-intro">
-      <p class="eyebrow">Faturamento</p>
-      <h1>Notas Fiscais</h1>
-      <p>Acompanhe as notas emitidas e acesse o fluxo de criação e fechamento.</p>
-    </section>
-  `,
-  styles: `
-    .page-intro {
-      max-width: 720px;
-    }
-
-    .eyebrow {
-      margin: 0 0 6px;
-      color: #4f46a5;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-      color: #1e293b;
-      font-size: clamp(1.8rem, 4vw, 2.3rem);
-      font-weight: 650;
-      letter-spacing: -0.025em;
-    }
-
-    .page-intro > p:last-child {
-      margin: 10px 0 0;
-      color: #64748b;
-      line-height: 1.6;
-    }
-  `
+  imports: [
+    DatePipe,
+    MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatTableModule
+  ],
+  templateUrl: './invoices-page.html',
+  styleUrl: './invoices-page.scss'
 })
-export class InvoicesPage {}
+export class InvoicesPage implements OnInit {
+  private readonly invoiceApi = inject(InvoiceApiService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  readonly displayedColumns = ['number', 'status', 'createdAt', 'closedAt'];
+
+  invoices: Invoice[] = [];
+  loading = true;
+  creating = false;
+  loadError = '';
+
+  ngOnInit(): void {
+    this.loadInvoices();
+  }
+
+  loadInvoices(): void {
+    this.loading = true;
+    this.loadError = '';
+
+    this.invoiceApi.getAll()
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.changeDetectorRef.markForCheck();
+      }))
+      .subscribe({
+        next: invoices => this.invoices = invoices,
+        error: error => {
+          this.loadError = this.getErrorMessage(
+            error,
+            'Não foi possível carregar as notas fiscais. Verifique se o serviço de faturamento está disponível.'
+          );
+        }
+      });
+  }
+
+  createInvoice(): void {
+    if (this.creating) {
+      return;
+    }
+
+    this.creating = true;
+
+    this.invoiceApi.create()
+      .pipe(finalize(() => {
+        this.creating = false;
+        this.changeDetectorRef.markForCheck();
+      }))
+      .subscribe({
+        next: invoice => {
+          this.invoices = [invoice, ...this.invoices];
+          this.snackBar.open(`Nota ${invoice.number} criada com sucesso.`, 'Fechar', { duration: 3500 });
+        },
+        error: error => {
+          this.snackBar.open(
+            this.getErrorMessage(error, 'Não foi possível criar a nota fiscal.'),
+            'Fechar',
+            { duration: 5000 }
+          );
+        }
+      });
+  }
+
+  statusLabel(status: InvoiceStatus): string {
+    return status === 1 ? 'Fechada' : 'Aberta';
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      const apiError = error.error as Partial<ApiErrorResponse> | null;
+      if (apiError?.message) {
+        return apiError.message;
+      }
+    }
+
+    return fallback;
+  }
+}

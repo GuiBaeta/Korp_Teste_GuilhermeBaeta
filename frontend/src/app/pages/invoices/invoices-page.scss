@@ -1,0 +1,129 @@
+:host {
+  display: block;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #4f46a5;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  color: #1e293b;
+  font-size: clamp(1.8rem, 4vw, 2.3rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.page-header p:last-child {
+  margin: 10px 0 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.page-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.page-actions button {
+  min-width: 110px;
+}
+
+.page-actions button mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.invoices-card {
+  overflow: hidden;
+}
+
+mat-card-content {
+  padding-top: 20px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+th {
+  color: #475569;
+  font-weight: 650;
+}
+
+td,
+th {
+  white-space: nowrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-badge.closed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.state-box {
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px;
+  color: #64748b;
+  text-align: center;
+}
+
+.error-state {
+  color: #b91c1c;
+}
+
+.empty-state strong,
+.error-state strong {
+  color: #334155;
+}
+
+@media (max-width: 720px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-actions {
+    width: 100%;
+  }
+
+  .page-actions button {
+    flex: 1;
+  }
+}

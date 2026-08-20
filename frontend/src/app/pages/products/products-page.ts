@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -31,6 +31,7 @@ export class ProductsPage implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly productApi = inject(ProductApiService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   readonly displayedColumns = ['code', 'description', 'stockQuantity'];
   readonly form = this.formBuilder.nonNullable.group({
@@ -53,7 +54,10 @@ export class ProductsPage implements OnInit {
     this.loadError = '';
 
     this.productApi.getAll()
-      .pipe(finalize(() => this.loading = false))
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.changeDetectorRef.markForCheck();
+      }))
       .subscribe({
         next: products => this.products = products,
         error: error => {
@@ -86,7 +90,10 @@ export class ProductsPage implements OnInit {
     this.saving = true;
 
     this.productApi.create(request)
-      .pipe(finalize(() => this.saving = false))
+      .pipe(finalize(() => {
+        this.saving = false;
+        this.changeDetectorRef.markForCheck();
+      }))
       .subscribe({
         next: product => {
           this.products = [...this.products, product];
