@@ -1,6 +1,5 @@
 using Inventory.Api.DTOs;
 using Inventory.Api.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory.Api.Controllers;
@@ -17,17 +16,30 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(
+        typeof(ProductResponse),
+        StatusCodes.Status201Created)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProductResponse>> Create(
         CreateProductRequest request)
     {
         var product = await _productService.CreateAsync(request);
 
-        return Created(
-            $"/api/products/{product.Id}",
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = product.Id },
             product);
     }
 
     [HttpGet]
+    [ProducesResponseType(
+        typeof(IReadOnlyList<ProductResponse>),
+        StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<ProductResponse>>> GetAll()
     {
         var products = await _productService.GetAllAsync();
@@ -36,13 +48,19 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(
+        typeof(ProductResponse),
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProductResponse>> GetById(Guid id)
     {
         var product = await _productService.GetByIdAsync(id);
 
         if (product is null)
         {
-            return NotFound();
+            throw new KeyNotFoundException("Product not found.");
         }
 
         return Ok(product);
@@ -50,28 +68,19 @@ public class ProductsController : ControllerBase
 
     [HttpPost("deduct-stock")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeductStock(DeductStockRequest request)
     {
-        try
-        {
-            await _productService.DeductStockAsync(request);
+        await _productService.DeductStockAsync(request);
 
-            return NoContent();
-        }
-        catch (ArgumentException exception)
-        {
-            return BadRequest(new { message = exception.Message });
-        }
-        catch (KeyNotFoundException exception)
-        {
-            return NotFound(new { message = exception.Message });
-        }
-        catch (InvalidOperationException exception)
-        {
-            return Conflict(new { message = exception.Message });
-        }
+        return NoContent();
     }
 }

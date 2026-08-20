@@ -1,6 +1,5 @@
 using Billing.Api.DTOs;
 using Billing.Api.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Billing.Api.Controllers;
@@ -45,14 +44,16 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(
         typeof(InvoiceResponse),
         StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status404NotFound)]
     public async Task<ActionResult<InvoiceResponse>> GetById(Guid id)
     {
         var invoice = await _invoiceService.GetByIdAsync(id);
 
         if (invoice is null)
         {
-            return NotFound();
+            throw new KeyNotFoundException("Invoice not found.");
         }
 
         return Ok(invoice);
@@ -62,23 +63,19 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(
         typeof(InvoiceResponse),
         StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<InvoiceResponse>> Close(Guid id)
     {
-        try
-        {
-            var invoice = await _invoiceService.CloseAsync(id);
+        var invoice = await _invoiceService.CloseAsync(id);
 
-            return Ok(invoice);
-        }
-        catch (KeyNotFoundException exception)
-        {
-            return NotFound(new { message = exception.Message });
-        }
-        catch (InvalidOperationException exception)
-        {
-            return Conflict(new { message = exception.Message });
-        }
+        return Ok(invoice);
     }
 }
