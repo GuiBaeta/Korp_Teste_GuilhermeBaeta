@@ -1,5 +1,146 @@
-.bootstrap-page {
-  max-width: 960px;
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 10%);
+}
+
+.app-toolbar {
+  min-height: 72px;
+  gap: 32px;
+  padding: 0 max(24px, calc((100vw - 1200px) / 2));
+  background: linear-gradient(110deg, #3155b7, #4f46a5);
+  color: #fff;
+}
+
+.brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 14%);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand-text strong {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.brand-text small {
+  margin-top: 3px;
+  color: rgb(255 255 255 / 82%);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.main-navigation {
+  display: flex;
+  align-self: stretch;
+  align-items: stretch;
+  margin-left: auto;
+  gap: 4px;
+}
+
+.main-navigation a {
+  position: relative;
+  align-self: center;
+  color: rgb(255 255 255 / 88%);
+  font-weight: 500;
+}
+
+.main-navigation a:hover,
+.main-navigation a.active-link {
+  color: #fff;
+  background: rgb(255 255 255 / 12%);
+}
+
+.main-navigation a.active-link::after {
+  position: absolute;
+  right: 12px;
+  bottom: 1px;
+  left: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: #fff;
+  content: '';
+}
+
+.app-content {
+  width: min(1200px, calc(100% - 48px));
+  flex: 1;
   margin: 0 auto;
-  padding: 48px 24px;
+  padding: 36px 0 48px;
+}
+
+.app-footer {
+  padding: 18px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.app-footer span {
+  margin: 0 6px;
+}
+
+@media (max-width: 720px) {
+  .app-toolbar {
+    height: auto;
+    min-height: 0;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 20px;
+  }
+
+  .brand {
+    width: 100%;
+  }
+
+  .brand-text small {
+    display: none;
+  }
+
+  .main-navigation {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .app-content {
+    width: min(100% - 32px, 1200px);
+    padding-top: 28px;
+  }
 }
