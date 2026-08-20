@@ -1,4 +1,4 @@
-<a mat-button routerLink="/invoices" class="back-link">← Voltar para notas fiscais</a>
+<a mat-button routerLink="/invoices" class="back-link no-print">← Voltar para notas fiscais</a>
 
 @if (loading) {
   <div class="state-box"><mat-spinner diameter="38" /><span>Carregando nota fiscal...</span></div>
@@ -14,25 +14,36 @@
       <h1>{{ invoice.number }}</h1>
       <p>Gerencie os itens e conclua a emissão da nota fiscal.</p>
     </div>
-    <div class="header-actions">
+    <div class="header-actions no-print">
       <span class="status-badge" [class.closed]="!isOpen">{{ statusLabel() }}</span>
-      @if (isOpen) {
-        <button mat-flat-button type="button" (click)="closeInvoice()" [disabled]="closing || items.length === 0">
-          @if (closing) { <mat-spinner diameter="20" /> Fechando... } @else { Fechar nota }
-        </button>
-      }
+      <button mat-flat-button type="button" (click)="printInvoice()" [disabled]="!isOpen || printing || saving || items.length === 0">
+        @if (printing) {
+          <mat-spinner diameter="20" />
+          Processando impressão...
+        } @else if (!isOpen) {
+          Nota já fechada
+        } @else {
+          Imprimir nota
+        }
+      </button>
     </div>
+  </section>
+
+  <section class="print-heading" aria-hidden="true">
+    <span>Sistema de Emissão de Notas Fiscais</span>
+    <strong>Nota Fiscal {{ invoice.number }}</strong>
   </section>
 
   <div class="summary-grid">
     <mat-card appearance="outlined"><mat-card-content><span>Criada em</span><strong>{{ invoice.createdAt | date:'dd/MM/yyyy HH:mm' }}</strong></mat-card-content></mat-card>
     <mat-card appearance="outlined"><mat-card-content><span>Fechada em</span><strong>{{ invoice.closedAt ? (invoice.closedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</strong></mat-card-content></mat-card>
     <mat-card appearance="outlined"><mat-card-content><span>Itens</span><strong>{{ items.length }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content><span>Status</span><strong>{{ statusLabel() }}</strong></mat-card-content></mat-card>
   </div>
 
   @if (isOpen) {
     <mat-card appearance="outlined" class="add-card">
-      <mat-card-header><mat-card-title>Adicionar produto</mat-card-title><mat-card-subtitle>O estoque só será baixado ao fechar a nota.</mat-card-subtitle></mat-card-header>
+      <mat-card-header><mat-card-title>Adicionar produto</mat-card-title><mat-card-subtitle>O estoque será baixado quando a nota for impressa e fechada.</mat-card-subtitle></mat-card-header>
       <mat-card-content>
         <form [formGroup]="addForm" (ngSubmit)="addItem()" class="add-form">
           <mat-form-field appearance="outline">
@@ -49,7 +60,7 @@
             <input matInput type="number" min="1" step="1" formControlName="quantity" />
             @if (addForm.controls.quantity.touched && addForm.controls.quantity.invalid) { <mat-error>Informe uma quantidade maior que zero.</mat-error> }
           </mat-form-field>
-          <button mat-flat-button type="submit" [disabled]="saving || closing">
+          <button mat-flat-button type="submit" [disabled]="saving || printing">
             @if (saving) {
               <mat-spinner diameter="20" />
               Salvando...
@@ -66,7 +77,7 @@
     <mat-card-header><mat-card-title>Produtos da nota</mat-card-title><mat-card-subtitle>{{ items.length }} item(ns)</mat-card-subtitle></mat-card-header>
     <mat-card-content>
       @if (items.length === 0) {
-        <div class="state-box empty-state"><strong>Nenhum item adicionado</strong><span>Adicione produtos antes de fechar a nota fiscal.</span></div>
+        <div class="state-box empty-state"><strong>Nenhum item adicionado</strong><span>Adicione produtos antes de imprimir a nota fiscal.</span></div>
       } @else {
         <div class="table-container">
           <table mat-table [dataSource]="items">
@@ -88,8 +99,8 @@
                     <button mat-button type="button" (click)="updateItem(item)" [disabled]="saving">Salvar</button>
                     <button mat-button type="button" (click)="cancelEdit()" [disabled]="saving">Cancelar</button>
                   } @else {
-                    <button mat-button type="button" (click)="startEdit(item)" [disabled]="saving || closing">Alterar</button>
-                    <button mat-button type="button" (click)="deleteItem(item)" [disabled]="saving || closing">Remover</button>
+                    <button mat-button type="button" (click)="startEdit(item)" [disabled]="saving || printing">Alterar</button>
+                    <button mat-button type="button" (click)="deleteItem(item)" [disabled]="saving || printing">Remover</button>
                   }
                 } @else { <span class="read-only">Somente leitura</span> }
               </td>

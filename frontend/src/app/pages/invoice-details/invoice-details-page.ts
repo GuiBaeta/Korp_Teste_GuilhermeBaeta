@@ -57,7 +57,7 @@ export class InvoiceDetailsPage implements OnInit {
   products: Product[] = [];
   loading = true;
   saving = false;
-  closing = false;
+  printing = false;
   loadError = '';
   editingItemId: string | null = null;
   editQuantity = 1;
@@ -156,7 +156,7 @@ export class InvoiceDetailsPage implements OnInit {
   }
 
   deleteItem(item: InvoiceItem): void {
-    if (!this.isOpen || this.saving || this.closing) return;
+    if (!this.isOpen || this.saving || this.printing) return;
 
     const confirmed = window.confirm(`Remover ${item.productCode} da nota fiscal?`);
     if (!confirmed) return;
@@ -176,25 +176,27 @@ export class InvoiceDetailsPage implements OnInit {
       });
   }
 
-  closeInvoice(): void {
-    if (!this.isOpen || this.items.length === 0 || this.closing || this.saving) return;
+  printInvoice(): void {
+    if (!this.isOpen || this.items.length === 0 || this.printing || this.saving) return;
 
     const confirmed = window.confirm(
-      'Fechar esta nota fiscal? Após o fechamento os itens não poderão mais ser alterados e o estoque será baixado.'
+      'Imprimir esta nota fiscal? A impressão concluirá a emissão, baixará o estoque e fechará a nota definitivamente.'
     );
     if (!confirmed) return;
 
-    this.closing = true;
+    this.printing = true;
     this.invoiceApi.close(this.invoiceId)
       .pipe(finalize(() => {
-        this.closing = false;
+        this.printing = false;
         this.changeDetectorRef.markForCheck();
       }))
       .subscribe({
         next: invoice => {
           this.invoice = invoice;
           this.editingItemId = null;
-          this.snackBar.open(`Nota ${invoice.number} fechada com sucesso. Estoque atualizado.`, 'Fechar', { duration: 4500 });
+          this.changeDetectorRef.detectChanges();
+          window.print();
+          this.snackBar.open(`Nota ${invoice.number} emitida e fechada com sucesso. Estoque atualizado.`, 'Fechar', { duration: 4500 });
         },
         error: error => {
           if (error instanceof HttpErrorResponse && error.status === 503) {
@@ -205,7 +207,7 @@ export class InvoiceDetailsPage implements OnInit {
             );
             return;
           }
-          this.showError(error, 'Não foi possível fechar a nota fiscal.');
+          this.showError(error, 'Não foi possível imprimir e fechar a nota fiscal.');
         }
       });
   }
