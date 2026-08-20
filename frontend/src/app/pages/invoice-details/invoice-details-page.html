@@ -1,0 +1,97 @@
+<a mat-button routerLink="/invoices" class="back-link">← Voltar para notas fiscais</a>
+
+@if (loading) {
+  <div class="state-box"><mat-spinner diameter="38" /><span>Carregando nota fiscal...</span></div>
+} @else if (loadError) {
+  <div class="state-box error-state">
+    <strong>Falha ao carregar</strong><span>{{ loadError }}</span>
+    <button mat-stroked-button type="button" (click)="loadDetails()">Tentar novamente</button>
+  </div>
+} @else if (invoice) {
+  <section class="page-header">
+    <div>
+      <p class="eyebrow">Faturamento</p>
+      <h1>{{ invoice.number }}</h1>
+      <p>Gerencie os itens e conclua a emissão da nota fiscal.</p>
+    </div>
+    <div class="header-actions">
+      <span class="status-badge" [class.closed]="!isOpen">{{ statusLabel() }}</span>
+      @if (isOpen) {
+        <button mat-flat-button type="button" (click)="closeInvoice()" [disabled]="closing || items.length === 0">
+          @if (closing) { <mat-spinner diameter="20" /> Fechando... } @else { Fechar nota }
+        </button>
+      }
+    </div>
+  </section>
+
+  <div class="summary-grid">
+    <mat-card appearance="outlined"><mat-card-content><span>Criada em</span><strong>{{ invoice.createdAt | date:'dd/MM/yyyy HH:mm' }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content><span>Fechada em</span><strong>{{ invoice.closedAt ? (invoice.closedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content><span>Itens</span><strong>{{ items.length }}</strong></mat-card-content></mat-card>
+  </div>
+
+  @if (isOpen) {
+    <mat-card appearance="outlined" class="add-card">
+      <mat-card-header><mat-card-title>Adicionar produto</mat-card-title><mat-card-subtitle>O estoque só será baixado ao fechar a nota.</mat-card-subtitle></mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="addForm" (ngSubmit)="addItem()" class="add-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Produto</mat-label>
+            <mat-select formControlName="productId">
+              @for (product of products; track product.id) {
+                <mat-option [value]="product.id">{{ product.code }} — {{ product.description }} (estoque: {{ product.stockQuantity }})</mat-option>
+              }
+            </mat-select>
+            @if (addForm.controls.productId.touched && addForm.controls.productId.invalid) { <mat-error>Selecione um produto.</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="quantity-field">
+            <mat-label>Quantidade</mat-label>
+            <input matInput type="number" min="1" step="1" formControlName="quantity" />
+            @if (addForm.controls.quantity.touched && addForm.controls.quantity.invalid) { <mat-error>Informe uma quantidade maior que zero.</mat-error> }
+          </mat-form-field>
+          <button mat-flat-button type="submit" [disabled]="saving">Adicionar item</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-card appearance="outlined" class="items-card">
+    <mat-card-header><mat-card-title>Produtos da nota</mat-card-title><mat-card-subtitle>{{ items.length }} item(ns)</mat-card-subtitle></mat-card-header>
+    <mat-card-content>
+      @if (items.length === 0) {
+        <div class="state-box empty-state"><strong>Nenhum item adicionado</strong><span>Adicione produtos antes de fechar a nota fiscal.</span></div>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="items">
+            <ng-container matColumnDef="productCode"><th mat-header-cell *matHeaderCellDef>Código</th><td mat-cell *matCellDef="let item"><strong>{{ item.productCode }}</strong></td></ng-container>
+            <ng-container matColumnDef="productDescription"><th mat-header-cell *matHeaderCellDef>Descrição</th><td mat-cell *matCellDef="let item">{{ item.productDescription }}</td></ng-container>
+            <ng-container matColumnDef="quantity">
+              <th mat-header-cell *matHeaderCellDef>Quantidade</th>
+              <td mat-cell *matCellDef="let item">
+                @if (editingItemId === item.id) {
+                  <input class="inline-quantity" type="number" min="1" step="1" [(ngModel)]="editQuantity" [ngModelOptions]="{standalone: true}" />
+                } @else { {{ item.quantity }} }
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Ações</th>
+              <td mat-cell *matCellDef="let item" class="row-actions">
+                @if (isOpen) {
+                  @if (editingItemId === item.id) {
+                    <button mat-button type="button" (click)="updateItem(item)" [disabled]="saving">Salvar</button>
+                    <button mat-button type="button" (click)="cancelEdit()">Cancelar</button>
+                  } @else {
+                    <button mat-button type="button" (click)="startEdit(item)">Alterar</button>
+                    <button mat-button type="button" (click)="deleteItem(item)" [disabled]="saving">Remover</button>
+                  }
+                } @else { <span class="read-only">Somente leitura</span> }
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+}

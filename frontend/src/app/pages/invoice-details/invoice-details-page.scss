@@ -1,0 +1,32 @@
+:host { display: block; }
+.back-link { margin: -8px 0 14px -12px; }
+.page-header { display:flex; justify-content:space-between; gap:24px; align-items:flex-start; margin-bottom:20px; }
+.eyebrow { margin:0 0 6px; color:#4f46a5; font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+h1 { margin:0; color:#1e293b; font-size:clamp(1.8rem,4vw,2.3rem); font-weight:650; }
+.page-header p:last-child { margin:10px 0 0; color:#64748b; }
+.header-actions { display:flex; align-items:center; gap:12px; }
+.header-actions button mat-spinner { display:inline-block; margin-right:8px; vertical-align:middle; }
+.status-badge { display:inline-flex; min-width:72px; justify-content:center; padding:6px 12px; border-radius:999px; background:#fef3c7; color:#92400e; font-size:.8rem; font-weight:700; }
+.status-badge.closed { background:#dcfce7; color:#166534; }
+.summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
+.summary-grid mat-card-content { display:flex; flex-direction:column; gap:5px; padding:18px; }
+.summary-grid span { color:#64748b; font-size:.82rem; }
+.summary-grid strong { color:#1e293b; }
+.add-card, .items-card { margin-bottom:18px; }
+mat-card-content { padding-top:18px; }
+.add-form { display:grid; grid-template-columns:minmax(260px,1fr) 150px auto; gap:12px; align-items:start; }
+.add-form button { height:56px; }
+.table-container { overflow-x:auto; }
+table { width:100%; }
+th { color:#475569; font-weight:650; }
+.inline-quantity { width:72px; padding:8px; border:1px solid #94a3b8; border-radius:6px; }
+.row-actions { white-space:nowrap; }
+.read-only { color:#64748b; font-size:.82rem; }
+.state-box { min-height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px; padding:28px; color:#64748b; text-align:center; }
+.error-state { color:#b91c1c; }
+@media (max-width:760px) {
+  .page-header { flex-direction:column; }
+  .summary-grid { grid-template-columns:1fr; }
+  .add-form { grid-template-columns:1fr; }
+  .add-form button { height:44px; }
+}

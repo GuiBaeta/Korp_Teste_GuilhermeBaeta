@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiErrorResponse, Invoice, InvoiceStatus } from '../../core/models/invoice';
 import { InvoiceApiService } from '../../core/services/invoice-api.service';
@@ -18,7 +19,8 @@ import { InvoiceApiService } from '../../core/services/invoice-api.service';
     MatCardModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatTableModule
+    MatTableModule,
+    RouterLink
   ],
   templateUrl: './invoices-page.html',
   styleUrl: './invoices-page.scss'
@@ -28,7 +30,7 @@ export class InvoicesPage implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  readonly displayedColumns = ['number', 'status', 'createdAt', 'closedAt'];
+  readonly displayedColumns = ['number', 'status', 'createdAt', 'closedAt', 'actions'];
 
   invoices: Invoice[] = [];
   loading = true;
