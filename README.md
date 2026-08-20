@@ -1,6 +1,6 @@
 # Sistema de Emissão de Notas Fiscais
 
-Projeto desenvolvido como teste técnico para a Korp. A solução implementa cadastro de produtos, controle de estoque e emissão de notas fiscais com fechamento integrado ao estoque.
+Projeto desenvolvido como teste técnico para a Korp. A solução implementa cadastro de produtos, controle de estoque e emissão/impressão de notas fiscais com fechamento integrado ao estoque.
 
 ## Visão geral
 
@@ -8,7 +8,7 @@ A aplicação é dividida em dois serviços de backend e um frontend Angular:
 
 - **Inventory API**: cadastro de produtos e controle de estoque.
 - **Billing API**: criação de notas fiscais, gerenciamento de itens e fechamento da nota.
-- **Frontend**: interface para produtos, notas fiscais e fluxo de fechamento.
+- **Frontend**: interface para produtos, notas fiscais e fluxo de impressão/emissão.
 - **PostgreSQL**: um banco independente para cada API.
 
 ```mermaid
@@ -69,11 +69,20 @@ flowchart LR
 - A numeração segue o formato `NF-AAAA-000001`, com sequência anual.
 - Um mesmo produto não pode ser adicionado duas vezes à mesma nota.
 - Itens só podem ser adicionados, alterados ou removidos enquanto a nota estiver aberta.
-- Uma nota precisa ter pelo menos um item para ser fechada.
-- Ao fechar a nota, a Billing API solicita a baixa de estoque à Inventory API.
+- Uma nota precisa ter pelo menos um item para ser impressa/fechada.
+- Ao imprimir a nota, o frontend exibe indicador de processamento e solicita o fechamento à Billing API.
+- A Billing API solicita a baixa de estoque à Inventory API.
 - A baixa só é concluída quando há estoque suficiente para todos os produtos solicitados.
 - A nota só é marcada como **Closed** depois que a Inventory API confirma a baixa de estoque.
+- Após a confirmação, o frontend atualiza o status e abre a impressão do navegador.
+- Notas fechadas não podem ser emitidas novamente pelo fluxo de impressão.
 - O fechamento é definitivo no fluxo atual da aplicação.
+
+## Detalhamento técnico
+
+O documento solicitado no desafio, com ciclos de vida do Angular, RxJS, bibliotecas, componentes visuais, frameworks C#, tratamento de erros, LINQ, microsserviços, persistência, concorrência, testes e decisões arquiteturais está disponível em:
+
+**[docs/detalhamento-tecnico.md](docs/detalhamento-tecnico.md)**
 
 ## Executando com Docker
 
@@ -262,7 +271,7 @@ Quando a aplicação está disponível, o endpoint responde com status HTTP `200
 | `POST` | `/api/invoices` | Cria uma nota fiscal |
 | `GET` | `/api/invoices` | Lista as notas fiscais |
 | `GET` | `/api/invoices/{id}` | Consulta uma nota por ID |
-| `POST` | `/api/invoices/{id}/close` | Fecha a nota e solicita a baixa de estoque |
+| `POST` | `/api/invoices/{id}/close` | Conclui a emissão, solicita a baixa de estoque e fecha a nota |
 | `GET` | `/api/invoices/{invoiceId}/items` | Lista os itens da nota |
 | `POST` | `/api/invoices/{invoiceId}/items` | Adiciona um item |
 | `PUT` | `/api/invoices/{invoiceId}/items/{itemId}` | Altera a quantidade de um item |
@@ -288,9 +297,10 @@ Entre os cenários tratados estão produto inexistente, código duplicado, estoq
 2. Criar uma nova nota fiscal.
 3. Adicionar produtos à nota e definir as quantidades.
 4. Alterar ou remover itens enquanto a nota estiver aberta.
-5. Fechar a nota.
-6. A Billing API solicita a baixa de estoque à Inventory API.
-7. Com a baixa confirmada, a nota passa para o status **Closed**.
+5. Clicar em **Imprimir nota**.
+6. Durante o processamento, a Billing API solicita a baixa de estoque à Inventory API.
+7. Com a baixa confirmada, a nota passa para **Closed**.
+8. O frontend atualiza o status e abre o diálogo de impressão do navegador.
 
 ## Observações de arquitetura
 
