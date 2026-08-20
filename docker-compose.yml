@@ -33,6 +33,49 @@ services:
       timeout: 5s
       retries: 5
 
+  inventory-api:
+    build:
+      context: ./backend/Inventory.Api
+    container_name: korp-inventory-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__InventoryDatabase: Host=inventory-db;Port=5432;Database=inventory_db;Username=inventory_user;Password=inventory_password
+    ports:
+      - "5173:8080"
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+
+  billing-api:
+    build:
+      context: ./backend/Billing.Api
+    container_name: korp-billing-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__BillingDatabase: Host=billing-db;Port=5432;Database=billing_db;Username=billing_user;Password=billing_password
+      Services__InventoryApi: http://inventory-api:8080/
+    ports:
+      - "5007:8080"
+    depends_on:
+      billing-db:
+        condition: service_healthy
+      inventory-api:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: korp-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      inventory-api:
+        condition: service_started
+      billing-api:
+        condition: service_started
+
 volumes:
   inventory_data:
   billing_data:
