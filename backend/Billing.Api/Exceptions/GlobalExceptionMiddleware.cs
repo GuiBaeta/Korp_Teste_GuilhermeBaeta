@@ -33,6 +33,9 @@ public class GlobalExceptionMiddleware
     {
         var (statusCode, message) = exception switch
         {
+            InventoryUnavailableException => (
+                StatusCodes.Status503ServiceUnavailable,
+                exception.Message),
             KeyNotFoundException => (
                 StatusCodes.Status404NotFound,
                 exception.Message),
@@ -52,6 +55,14 @@ public class GlobalExceptionMiddleware
             _logger.LogError(
                 exception,
                 "Unhandled exception while processing {Method} {Path}.",
+                context.Request.Method,
+                context.Request.Path);
+        }
+        else if (statusCode == StatusCodes.Status503ServiceUnavailable)
+        {
+            _logger.LogWarning(
+                exception,
+                "Inventory service unavailable while processing {Method} {Path}.",
                 context.Request.Method,
                 context.Request.Path);
         }

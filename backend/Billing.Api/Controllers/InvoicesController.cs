@@ -71,6 +71,9 @@ public class InvoicesController : ControllerBase
         StatusCodes.Status409Conflict)]
     [ProducesResponseType(
         typeof(ApiErrorResponse),
+        StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
         StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<InvoiceResponse>> Close(Guid id)
     {

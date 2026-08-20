@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Billing.Api.DTOs;
+using Billing.Api.Exceptions;
 
 namespace Billing.Api.Services;
 
@@ -15,45 +16,95 @@ public class InventoryApiClient
 
     public async Task<InventoryProductResponse?> GetProductByIdAsync(Guid productId)
     {
-        using var response = await _httpClient.GetAsync($"api/products/{productId}");
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        try
         {
-            return null;
+            using var response = await _httpClient.GetAsync(
+                $"api/products/{productId}");
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            EnsureInventoryIsAvailable(response);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content
+                .ReadFromJsonAsync<InventoryProductResponse>();
         }
-
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<InventoryProductResponse>();
+        catch (InventoryUnavailableException)
+        {
+            throw;
+        }
+        catch (HttpRequestException exception)
+        {
+            throw new InventoryUnavailableException(exception);
+        }
+        catch (TaskCanceledException exception)
+        {
+            throw new InventoryUnavailableException(exception);
+        }
     }
 
     public async Task DeductStockAsync(InventoryStockDeductionRequest request)
     {
-        using var response = await _httpClient.PostAsJsonAsync(
-            "api/products/deduct-stock",
-            request);
-
-        if (response.IsSuccessStatusCode)
+        try
         {
-            return;
+            using var response = await _httpClient.PostAsJsonAsync(
+                "api/products/deduct-stock",
+                request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            EnsureInventoryIsAvailable(response);
+
+            var error = await response.Content
+                .ReadFromJsonAsync<InventoryErrorResponse>();
+
+            var message = string.IsNullOrWhiteSpace(error?.Message)
+                ? "Inventory service rejected the stock deduction."
+                : error.Message;
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                throw new ArgumentException(message);
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new KeyNotFoundException(message);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                throw new InvalidOperationException(message);
+            }
+
+            response.EnsureSuccessStatusCode();
         }
-
-        var error = await response.Content.ReadFromJsonAsync<InventoryErrorResponse>();
-        var message = string.IsNullOrWhiteSpace(error?.Message)
-            ? "Inventory service rejected the stock deduction."
-            : error.Message;
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        catch (InventoryUnavailableException)
         {
-            throw new KeyNotFoundException(message);
+            throw;
         }
-
-        if (response.StatusCode == HttpStatusCode.Conflict)
+        catch (HttpRequestException exception)
         {
-            throw new InvalidOperationException(message);
+            throw new InventoryUnavailableException(exception);
         }
+        catch (TaskCanceledException exception)
+        {
+            throw new InventoryUnavailableException(exception);
+        }
+    }
 
-        response.EnsureSuccessStatusCode();
+    private static void EnsureInventoryIsAvailable(HttpResponseMessage response)
+    {
+        if ((int)response.StatusCode >= 500)
+        {
+            throw new InventoryUnavailableException();
+        }
     }
 
     private sealed class InventoryErrorResponse

@@ -46,6 +46,7 @@ var inventoryApiUrl = builder.Configuration["Services:InventoryApi"]
 builder.Services.AddHttpClient<InventoryApiClient>(client =>
 {
     client.BaseAddress = new Uri(inventoryApiUrl);
+    client.Timeout = TimeSpan.FromSeconds(5);
 });
 
 builder.Services.AddEndpointsApiExplorer();
