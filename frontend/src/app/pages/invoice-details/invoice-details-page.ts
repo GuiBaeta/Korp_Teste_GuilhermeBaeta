@@ -156,7 +156,10 @@ export class InvoiceDetailsPage implements OnInit {
   }
 
   deleteItem(item: InvoiceItem): void {
-    if (!this.isOpen || this.saving) return;
+    if (!this.isOpen || this.saving || this.closing) return;
+
+    const confirmed = window.confirm(`Remover ${item.productCode} da nota fiscal?`);
+    if (!confirmed) return;
 
     this.saving = true;
     this.invoiceApi.deleteItem(this.invoiceId, item.id)
@@ -174,7 +177,12 @@ export class InvoiceDetailsPage implements OnInit {
   }
 
   closeInvoice(): void {
-    if (!this.isOpen || this.items.length === 0 || this.closing) return;
+    if (!this.isOpen || this.items.length === 0 || this.closing || this.saving) return;
+
+    const confirmed = window.confirm(
+      'Fechar esta nota fiscal? Após o fechamento os itens não poderão mais ser alterados e o estoque será baixado.'
+    );
+    if (!confirmed) return;
 
     this.closing = true;
     this.invoiceApi.close(this.invoiceId)

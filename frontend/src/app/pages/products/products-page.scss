@@ -134,3 +134,9 @@ th {
     flex-direction: column;
   }
 }
+
+.page-header > button mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}

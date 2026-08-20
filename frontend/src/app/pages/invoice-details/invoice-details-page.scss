@@ -30,3 +30,9 @@ th { color:#475569; font-weight:650; }
   .add-form { grid-template-columns:1fr; }
   .add-form button { height:44px; }
 }
+
+.add-form button mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}

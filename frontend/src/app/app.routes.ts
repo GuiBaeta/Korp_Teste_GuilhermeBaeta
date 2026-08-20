@@ -1,7 +1,4 @@
 import { Routes } from '@angular/router';
-import { InvoiceDetailsPage } from './pages/invoice-details/invoice-details-page';
-import { InvoicesPage } from './pages/invoices/invoices-page';
-import { ProductsPage } from './pages/products/products-page';
 
 export const routes: Routes = [
   {
@@ -11,17 +8,17 @@ export const routes: Routes = [
   },
   {
     path: 'products',
-    component: ProductsPage,
+    loadComponent: () => import('./pages/products/products-page').then(component => component.ProductsPage),
     title: 'Produtos | Emissão NF'
   },
   {
     path: 'invoices',
-    component: InvoicesPage,
+    loadComponent: () => import('./pages/invoices/invoices-page').then(component => component.InvoicesPage),
     title: 'Notas Fiscais | Emissão NF'
   },
   {
     path: 'invoices/:id',
-    component: InvoiceDetailsPage,
+    loadComponent: () => import('./pages/invoice-details/invoice-details-page').then(component => component.InvoiceDetailsPage),
     title: 'Detalhes da Nota | Emissão NF'
   },
   {

@@ -6,7 +6,12 @@
   </div>
 
   <button mat-stroked-button type="button" (click)="loadProducts()" [disabled]="loading">
-    Atualizar
+    @if (loading) {
+      <mat-spinner diameter="18" />
+      Carregando...
+    } @else {
+      Atualizar
+    }
   </button>
 </section>
 
