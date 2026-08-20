@@ -11,6 +11,7 @@ builder.Services.AddDbContext<BillingDbContext>(options =>
         builder.Configuration.GetConnectionString("BillingDatabase")));
 
 builder.Services.AddScoped<InvoiceService>();
+builder.Services.AddScoped<InvoiceItemService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
