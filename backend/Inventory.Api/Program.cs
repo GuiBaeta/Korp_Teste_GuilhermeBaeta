@@ -2,6 +2,7 @@ using Inventory.Api.Data;
 using Inventory.Api.DTOs;
 using Inventory.Api.Exceptions;
 using Inventory.Api.Services;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -49,6 +50,8 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 
 builder.Services.AddScoped<ProductService>();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -69,6 +72,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("Frontend");
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();

@@ -100,8 +100,10 @@ A aplicação ficará disponível em:
 | --- | --- |
 | Frontend | http://localhost:4200 |
 | Inventory API | http://localhost:5173 |
+| Inventory Health | http://localhost:5173/health |
 | Inventory Swagger | http://localhost:5173/swagger |
 | Billing API | http://localhost:5007 |
+| Billing Health | http://localhost:5007/health |
 | Billing Swagger | http://localhost:5007/swagger |
 | Inventory PostgreSQL | localhost:5432 |
 | Billing PostgreSQL | localhost:5433 |
@@ -199,6 +201,17 @@ npm test -- --watch=false
 ```
 
 Os testes de frontend validam as chamadas HTTP dos serviços responsáveis por produtos e notas fiscais.
+
+## Health checks
+
+As duas APIs expõem um endpoint simples de saúde para facilitar diagnóstico local, monitoramento e validações de infraestrutura:
+
+```text
+GET http://localhost:5173/health
+GET http://localhost:5007/health
+```
+
+Quando a aplicação está disponível, o endpoint responde com status HTTP `200` e o estado `Healthy`.
 
 ## Principais endpoints
 
