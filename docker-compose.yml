@@ -3,15 +3,15 @@ services:
     image: postgres:17
     container_name: korp-inventory-db
     environment:
-      POSTGRES_DB: inventory_db
-      POSTGRES_USER: inventory_user
-      POSTGRES_PASSWORD: inventory_password
+      POSTGRES_DB: ${INVENTORY_DB_NAME}
+      POSTGRES_USER: ${INVENTORY_DB_USER}
+      POSTGRES_PASSWORD: ${INVENTORY_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - inventory_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U inventory_user -d inventory_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${INVENTORY_DB_USER} -d ${INVENTORY_DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,15 +20,15 @@ services:
     image: postgres:17
     container_name: korp-billing-db
     environment:
-      POSTGRES_DB: billing_db
-      POSTGRES_USER: billing_user
-      POSTGRES_PASSWORD: billing_password
+      POSTGRES_DB: ${BILLING_DB_NAME}
+      POSTGRES_USER: ${BILLING_DB_USER}
+      POSTGRES_PASSWORD: ${BILLING_DB_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
       - billing_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U billing_user -d billing_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${BILLING_DB_USER} -d ${BILLING_DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,7 +40,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__InventoryDatabase: Host=inventory-db;Port=5432;Database=inventory_db;Username=inventory_user;Password=inventory_password
+      ConnectionStrings__InventoryDatabase: Host=inventory-db;Port=5432;Database=${INVENTORY_DB_NAME};Username=${INVENTORY_DB_USER};Password=${INVENTORY_DB_PASSWORD}
     ports:
       - "5173:8080"
     depends_on:
@@ -54,7 +54,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__BillingDatabase: Host=billing-db;Port=5432;Database=billing_db;Username=billing_user;Password=billing_password
+      ConnectionStrings__BillingDatabase: Host=billing-db;Port=5432;Database=${BILLING_DB_NAME};Username=${BILLING_DB_USER};Password=${BILLING_DB_PASSWORD}
       Services__InventoryApi: http://inventory-api:8080/
     ports:
       - "5007:8080"

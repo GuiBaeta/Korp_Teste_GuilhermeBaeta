@@ -56,6 +56,7 @@ flowchart LR
 ├── tests/
 │   ├── Inventory.Api.Tests/
 │   └── Billing.Api.Tests/
+├── .env.example
 ├── docker-compose.yml
 └── Korp_Teste_GuilhermeBaeta.sln
 ```
@@ -82,7 +83,13 @@ Esta é a forma mais simples de executar a solução completa.
 
 - Docker Desktop ou ambiente com Docker Compose disponível.
 
-Na raiz do projeto:
+Na raiz do projeto, crie o arquivo local de variáveis de ambiente a partir do exemplo:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+O arquivo `.env` não é versionado. Ajuste as credenciais locais se necessário e então suba a aplicação:
 
 ```bash
 docker compose up --build -d
@@ -138,7 +145,13 @@ docker compose down -v
 
 ### 1. Subir os bancos
 
-Na raiz do projeto:
+Na raiz do projeto, caso ainda não exista um `.env` local:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Depois:
 
 ```bash
 docker compose up -d inventory-db billing-db
