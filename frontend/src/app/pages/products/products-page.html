@@ -1,0 +1,110 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Cadastro</p>
+    <h1>Produtos</h1>
+    <p>Cadastre produtos e acompanhe o estoque disponível para emissão de notas fiscais.</p>
+  </div>
+
+  <button mat-stroked-button type="button" (click)="loadProducts()" [disabled]="loading">
+    Atualizar
+  </button>
+</section>
+
+<div class="products-layout">
+  <mat-card appearance="outlined" class="products-card">
+    <mat-card-header>
+      <mat-card-title>Produtos cadastrados</mat-card-title>
+      <mat-card-subtitle>{{ products.length }} produto(s)</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading) {
+        <div class="state-box" aria-live="polite">
+          <mat-spinner diameter="36" />
+          <span>Carregando produtos...</span>
+        </div>
+      } @else if (loadError) {
+        <div class="state-box error-state" role="alert">
+          <strong>Falha ao carregar</strong>
+          <span>{{ loadError }}</span>
+          <button mat-stroked-button type="button" (click)="loadProducts()">Tentar novamente</button>
+        </div>
+      } @else if (products.length === 0) {
+        <div class="state-box empty-state">
+          <strong>Nenhum produto cadastrado</strong>
+          <span>Use o formulário ao lado para criar o primeiro produto.</span>
+        </div>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="products">
+            <ng-container matColumnDef="code">
+              <th mat-header-cell *matHeaderCellDef>Código</th>
+              <td mat-cell *matCellDef="let product">{{ product.code }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Descrição</th>
+              <td mat-cell *matCellDef="let product">{{ product.description }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="stockQuantity">
+              <th mat-header-cell *matHeaderCellDef>Estoque</th>
+              <td mat-cell *matCellDef="let product">
+                <span class="stock-badge">{{ product.stockQuantity }}</span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="form-card">
+    <mat-card-header>
+      <mat-card-title>Novo produto</mat-card-title>
+      <mat-card-subtitle>Informe os dados iniciais do estoque.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="createProduct()">
+        <mat-form-field appearance="outline">
+          <mat-label>Código</mat-label>
+          <input matInput formControlName="code" maxlength="50" autocomplete="off" />
+          @if (form.controls.code.hasError('required') && form.controls.code.touched) {
+            <mat-error>Informe o código.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Descrição</mat-label>
+          <input matInput formControlName="description" maxlength="200" autocomplete="off" />
+          @if (form.controls.description.hasError('required') && form.controls.description.touched) {
+            <mat-error>Informe a descrição.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estoque inicial</mat-label>
+          <input matInput type="number" min="0" step="1" formControlName="stockQuantity" />
+          @if (form.controls.stockQuantity.hasError('min') && form.controls.stockQuantity.touched) {
+            <mat-error>O estoque não pode ser negativo.</mat-error>
+          } @else if (form.controls.stockQuantity.hasError('pattern') && form.controls.stockQuantity.touched) {
+            <mat-error>Informe uma quantidade inteira.</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button type="submit" [disabled]="saving">
+          @if (saving) {
+            <mat-spinner diameter="20" />
+            Salvando...
+          } @else {
+            Cadastrar produto
+          }
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
