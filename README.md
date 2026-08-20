@@ -101,6 +101,8 @@ Verifique os containers:
 docker compose ps
 ```
 
+Os serviços possuem health checks no Docker Compose. A Billing API aguarda a Inventory API ficar saudável, e o frontend aguarda as duas APIs antes de iniciar. No `docker compose ps`, os containers devem aparecer com estado `healthy` após a inicialização.
+
 A aplicação ficará disponível em:
 
 | Serviço | URL |

@@ -46,6 +46,12 @@ services:
     depends_on:
       inventory-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   billing-api:
     build:
@@ -62,7 +68,13 @@ services:
       billing-db:
         condition: service_healthy
       inventory-api:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   frontend:
     build:
@@ -72,9 +84,15 @@ services:
       - "4200:80"
     depends_on:
       inventory-api:
-        condition: service_started
+        condition: service_healthy
       billing-api:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
 volumes:
   inventory_data:
