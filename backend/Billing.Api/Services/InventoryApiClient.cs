@@ -26,4 +26,38 @@ public class InventoryApiClient
 
         return await response.Content.ReadFromJsonAsync<InventoryProductResponse>();
     }
+
+    public async Task DeductStockAsync(InventoryStockDeductionRequest request)
+    {
+        using var response = await _httpClient.PostAsJsonAsync(
+            "api/products/deduct-stock",
+            request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        var error = await response.Content.ReadFromJsonAsync<InventoryErrorResponse>();
+        var message = string.IsNullOrWhiteSpace(error?.Message)
+            ? "Inventory service rejected the stock deduction."
+            : error.Message;
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new KeyNotFoundException(message);
+        }
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            throw new InvalidOperationException(message);
+        }
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    private sealed class InventoryErrorResponse
+    {
+        public string Message { get; set; } = string.Empty;
+    }
 }

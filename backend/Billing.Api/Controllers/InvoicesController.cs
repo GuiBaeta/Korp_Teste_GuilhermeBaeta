@@ -57,4 +57,28 @@ public class InvoicesController : ControllerBase
 
         return Ok(invoice);
     }
+
+    [HttpPost("{id:guid}/close")]
+    [ProducesResponseType(
+        typeof(InvoiceResponse),
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<InvoiceResponse>> Close(Guid id)
+    {
+        try
+        {
+            var invoice = await _invoiceService.CloseAsync(id);
+
+            return Ok(invoice);
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(new { message = exception.Message });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(new { message = exception.Message });
+        }
+    }
 }

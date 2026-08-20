@@ -72,6 +72,76 @@ public class ProductService
             : MapToResponse(product);
     }
 
+    public async Task DeductStockAsync(DeductStockRequest request)
+    {
+        if (request.Items.Count == 0)
+        {
+            throw new ArgumentException(
+                "At least one product is required for stock deduction.");
+        }
+
+        if (request.Items.Any(item => item.ProductId == Guid.Empty))
+        {
+            throw new ArgumentException("ProductId is required.");
+        }
+
+        var groupedItems = request.Items
+            .GroupBy(item => item.ProductId)
+            .Select(group => new
+            {
+                ProductId = group.Key,
+                Quantity = group.Sum(item => (long)item.Quantity)
+            })
+            .OrderBy(item => item.ProductId)
+            .ToList();
+
+        if (groupedItems.Any(item => item.Quantity > int.MaxValue))
+        {
+            throw new ArgumentException(
+                "The requested stock quantity is too large.");
+        }
+
+        await using var transaction =
+            await _dbContext.Database.BeginTransactionAsync();
+
+        var now = DateTime.UtcNow;
+
+        foreach (var requestedItem in groupedItems)
+        {
+            var quantity = (int)requestedItem.Quantity;
+
+            var affectedRows = await _dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE products
+                SET "StockQuantity" = "StockQuantity" - {quantity},
+                    "UpdatedAt" = {now}
+                WHERE "Id" = {requestedItem.ProductId}
+                  AND "StockQuantity" >= {quantity};
+                """);
+
+            if (affectedRows > 0)
+            {
+                continue;
+            }
+
+            var product = await _dbContext.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(product =>
+                    product.Id == requestedItem.ProductId);
+
+            if (product is null)
+            {
+                throw new KeyNotFoundException(
+                    $"Product '{requestedItem.ProductId}' was not found.");
+            }
+
+            throw new InvalidOperationException(
+                $"Insufficient stock for product '{product.Code}'. " +
+                $"Available: {product.StockQuantity}, requested: {quantity}.");
+        }
+
+        await transaction.CommitAsync();
+    }
+
     private static ProductResponse MapToResponse(Product product)
     {
         return new ProductResponse

@@ -10,10 +10,14 @@ namespace Billing.Api.Services;
 public class InvoiceService
 {
     private readonly BillingDbContext _dbContext;
+    private readonly InventoryApiClient _inventoryApiClient;
 
-    public InvoiceService(BillingDbContext dbContext)
+    public InvoiceService(
+        BillingDbContext dbContext,
+        InventoryApiClient inventoryApiClient)
     {
         _dbContext = dbContext;
+        _inventoryApiClient = inventoryApiClient;
     }
 
     public async Task<InvoiceResponse> CreateAsync()
@@ -70,6 +74,50 @@ public class InvoiceService
         return invoice is null
             ? null
             : MapToResponse(invoice);
+    }
+
+    public async Task<InvoiceResponse> CloseAsync(Guid id)
+    {
+        var invoice = await _dbContext.Invoices
+            .Include(invoice => invoice.Items)
+            .FirstOrDefaultAsync(invoice => invoice.Id == id);
+
+        if (invoice is null)
+        {
+            throw new KeyNotFoundException("Invoice not found.");
+        }
+
+        if (invoice.Status != InvoiceStatus.Open)
+        {
+            throw new InvalidOperationException(
+                "Only open invoices can be closed.");
+        }
+
+        if (invoice.Items.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "An invoice must have at least one item before it can be closed.");
+        }
+
+        var stockRequest = new InventoryStockDeductionRequest
+        {
+            Items = invoice.Items
+                .Select(item => new InventoryStockDeductionItemRequest
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity
+                })
+                .ToList()
+        };
+
+        await _inventoryApiClient.DeductStockAsync(stockRequest);
+
+        invoice.Status = InvoiceStatus.Closed;
+        invoice.ClosedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return MapToResponse(invoice);
     }
 
     private async Task<long> GetNextNumberAsync(

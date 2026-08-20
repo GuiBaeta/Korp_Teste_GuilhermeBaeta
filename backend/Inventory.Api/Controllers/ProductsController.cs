@@ -1,5 +1,6 @@
 using Inventory.Api.DTOs;
 using Inventory.Api.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory.Api.Controllers;
@@ -45,5 +46,32 @@ public class ProductsController : ControllerBase
         }
 
         return Ok(product);
+    }
+
+    [HttpPost("deduct-stock")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeductStock(DeductStockRequest request)
+    {
+        try
+        {
+            await _productService.DeductStockAsync(request);
+
+            return NoContent();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(new { message = exception.Message });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(new { message = exception.Message });
+        }
     }
 }
