@@ -9,10 +9,14 @@ namespace Billing.Api.Services;
 public class InvoiceItemService
 {
     private readonly BillingDbContext _dbContext;
+    private readonly InventoryApiClient _inventoryApiClient;
 
-    public InvoiceItemService(BillingDbContext dbContext)
+    public InvoiceItemService(
+        BillingDbContext dbContext,
+        InventoryApiClient inventoryApiClient)
     {
         _dbContext = dbContext;
+        _inventoryApiClient = inventoryApiClient;
     }
 
     public async Task<List<InvoiceItemResponse>> GetAllAsync(Guid invoiceId)
@@ -53,16 +57,6 @@ public class InvoiceItemService
             throw new ArgumentException("ProductId is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(request.ProductCode))
-        {
-            throw new ArgumentException("Product code is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.ProductDescription))
-        {
-            throw new ArgumentException("Product description is required.");
-        }
-
         var productAlreadyAdded = await _dbContext.InvoiceItems
             .AnyAsync(item =>
                 item.InvoiceId == invoiceId &&
@@ -74,13 +68,21 @@ public class InvoiceItemService
                 "Product is already included in this invoice.");
         }
 
+        var product = await _inventoryApiClient.GetProductByIdAsync(
+            request.ProductId);
+
+        if (product is null)
+        {
+            throw new KeyNotFoundException("Product not found.");
+        }
+
         var item = new InvoiceItem
         {
             Id = Guid.NewGuid(),
             InvoiceId = invoiceId,
-            ProductId = request.ProductId,
-            ProductCode = request.ProductCode.Trim(),
-            ProductDescription = request.ProductDescription.Trim(),
+            ProductId = product.Id,
+            ProductCode = product.Code,
+            ProductDescription = product.Description,
             Quantity = request.Quantity
         };
 

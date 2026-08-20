@@ -13,6 +13,15 @@ builder.Services.AddDbContext<BillingDbContext>(options =>
 builder.Services.AddScoped<InvoiceService>();
 builder.Services.AddScoped<InvoiceItemService>();
 
+var inventoryApiUrl = builder.Configuration["Services:InventoryApi"]
+    ?? throw new InvalidOperationException(
+        "Inventory API URL is not configured.");
+
+builder.Services.AddHttpClient<InventoryApiClient>(client =>
+{
+    client.BaseAddress = new Uri(inventoryApiUrl);
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
