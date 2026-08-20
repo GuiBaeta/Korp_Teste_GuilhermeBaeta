@@ -217,6 +217,22 @@ npm test -- --watch=false
 
 Os testes de frontend validam as chamadas HTTP dos serviços responsáveis por produtos e notas fiscais.
 
+## Verificação completa da entrega
+
+Na raiz do projeto, o script `scripts/verify.ps1` executa em sequência as verificações usadas antes da entrega: restore, build e testes do backend, instalação determinística, build e testes do frontend e validação da configuração do Docker Compose.
+
+```powershell
+.\scripts\verify.ps1
+```
+
+Para executar apenas as validações de código e testes, sem validar o Docker Compose:
+
+```powershell
+.\scripts\verify.ps1 -SkipDockerValidation
+```
+
+A validação do Compose utiliza `.env.example`, portanto não depende das credenciais do arquivo `.env` local. O script encerra imediatamente caso qualquer etapa retorne erro.
+
 ## Health checks
 
 As duas APIs expõem um endpoint simples de saúde para facilitar diagnóstico local, monitoramento e validações de infraestrutura:
